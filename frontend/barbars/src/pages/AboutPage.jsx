@@ -3,7 +3,6 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { ContactShadows, Environment, Float, OrbitControls, RoundedBox } from '@react-three/drei'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import Lenis from 'lenis'
 import { Link } from 'react-router-dom'
 import * as THREE from 'three'
 import { AboutFooter, AboutHero, ChairSection, ClipperSection, FinalSection, MirrorSection, PhilosophySection, StatsSection, StorySection, TimelineSection, WorkshopSection } from '../components/about/Sections.jsx'
@@ -80,7 +79,7 @@ function Clipper({ partsRef, onInspect, powered }) {
 }
 
 function ClipperExperience({ partsRef, onInspect, powered }) {
-  return <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0.1, 5.2], fov: 34 }} gl={{ antialias: true, alpha: true }} shadows>
+  return <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0.1, 5.2], fov: 34 }} gl={{ antialias: true, alpha: true }} shadows="percentage">
     <color attach="background" args={['#0b0b0a']} />
     <ambientLight intensity={0.45} />
     <spotLight position={[3, 5, 4]} intensity={85} color="#edd2aa" angle={0.36} penumbra={0.8} castShadow />
@@ -114,23 +113,27 @@ function ToolScene({ selectedTool, setSelectedTool }) {
   </Canvas>
 }
 
-function ChairScene({ chairTurned }) {
+function ChairModel({ chairTurned }) {
   const chair = useRef()
   useFrame((_, delta) => {
     if (!chair.current) return
     const destination = chairTurned ? -0.3 + Math.PI * 2 : -0.3
     chair.current.rotation.y += (destination - chair.current.rotation.y) * Math.min(delta * 1.7, 1)
   })
-  return <Canvas dpr={[1, 1.4]} camera={{ position: [0, 1.2, 5.5], fov: 35 }}>
-    <color attach="background" args={['#10100f']} /><ambientLight intensity={0.48} /><spotLight position={[3, 5, 2]} intensity={90} color="#e3c69d" angle={0.42} penumbra={0.9} /><Environment preset="warehouse" />
-    <group ref={chair} rotation={[0, -0.3, 0]}>
+  return <group ref={chair} rotation={[0, -0.3, 0]}>
       <mesh position={[0, -0.25, 0]} material={darkMetal}><cylinderGeometry args={[0.58, 0.65, 0.14, 32]} /></mesh>
       <mesh position={[0, -0.02, 0]} material={gold}><cylinderGeometry args={[0.13, 0.16, 0.36, 24]} /></mesh>
       <RoundedBox args={[1.35, 0.27, 1]} radius={0.14} smoothness={3} position={[0, 0.23, 0]}><meshStandardMaterial color="#211b16" roughness={0.35} /></RoundedBox>
       <RoundedBox args={[1.27, 1.16, 0.27]} radius={0.14} smoothness={3} position={[0, 0.91, -0.28]} rotation={[-0.09, 0, 0]}><meshStandardMaterial color="#211b16" roughness={0.35} /></RoundedBox>
       {[-1, 1].map((s) => <group key={s} position={[s * 0.75, 0.35, 0]}><mesh material={gold}><boxGeometry args={[0.1, 0.12, 0.9]} /></mesh><mesh position={[0, 0.18, -0.2]}><RoundedBox args={[0.17, 0.32, 0.5]} radius={0.08}><meshStandardMaterial color="#211b16" /></RoundedBox></mesh></group>)}
       <mesh position={[0, 1.58, -0.29]}><RoundedBox args={[0.93, 0.34, 0.28]} radius={0.13}><meshStandardMaterial color="#211b16" /></RoundedBox></mesh>
-    </group>
+  </group>
+}
+
+function ChairScene({ chairTurned }) {
+  return <Canvas dpr={[1, 1.4]} camera={{ position: [0, 1.2, 5.5], fov: 35 }}>
+    <color attach="background" args={['#10100f']} /><ambientLight intensity={0.48} /><spotLight position={[3, 5, 2]} intensity={90} color="#e3c69d" angle={0.42} penumbra={0.9} /><Environment preset="warehouse" />
+    <ChairModel chairTurned={chairTurned} />
     <ContactShadows position={[0, -0.34, 0]} opacity={0.5} scale={6} blur={2.5} /><OrbitControls enablePan={false} enableZoom={false} />
   </Canvas>
 }
@@ -147,35 +150,29 @@ export default function AboutPage() {
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    let lenis
-    let ticker
-    if (!reduce) {
-      lenis = new Lenis({ duration: 0.52, smoothWheel: true, wheelMultiplier: 1.35, touchMultiplier: 1.2 })
-      lenis.on('scroll', ScrollTrigger.update)
-      ticker = (time) => lenis.raf(time * 1000)
-      gsap.ticker.add(ticker)
-      gsap.ticker.lagSmoothing(0)
-    }
+    // Clear any pins left by a previous route before measuring this page.
+    ScrollTrigger.getAll().forEach((trigger) => trigger.kill())
+    ScrollTrigger.clearScrollMemory('manual')
     const ctx = gsap.context(() => {
       if (!reduce) {
         gsap.from('.about-hero-title .line', { yPercent: 110, opacity: 0, stagger: 0.13, duration: 1.2, ease: 'power4.out', delay: 0.1 })
         gsap.to('.about-hero-glow', { opacity: 0.75, scrollTrigger: { trigger: '.about-hero', start: 'top top', end: 'bottom top', scrub: true } })
         const explodedView = { progress: 0 }
-        const timeline = gsap.timeline({ scrollTrigger: { trigger: '.clipper-experience', start: 'top top', end: '+=1450', pin: true, scrub: true, invalidateOnRefresh: true } })
+        const timeline = gsap.timeline({ scrollTrigger: { trigger: '.clipper-experience', start: 'top top', end: 'bottom top', scrub: true, invalidateOnRefresh: true } })
         timeline.to('.clipper-copy', { y: -80, opacity: 0.2, duration: 0.2 }, 0.15)
         timeline.to('.clipper-explode-labels', { opacity: 1, duration: 0.1 }, 0.42)
         timeline.to(explodedView, { progress: 1, duration: 0.22, onUpdate: () => { clipperParts.current.explode = explodedView.progress } }, 0.42)
         timeline.to(explodedView, { progress: 0, duration: 0.2, onUpdate: () => { clipperParts.current.explode = explodedView.progress } }, 0.79)
-        gsap.utils.toArray('.about-reveal').forEach((el) => gsap.from(el, { y: 46, opacity: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 83%' } }))
-        gsap.from('.barber-portrait', { clipPath: 'inset(12% 12% 12% 12%)', scale: 1.08, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: '.story-portrait', start: 'top 72%' } })
+        gsap.utils.toArray('.about-reveal').forEach((el) => gsap.from(el, { y: 46, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 83%' } }))
+        gsap.from('.portrait-image', { clipPath: 'inset(12% 12% 12% 12%)', scale: 1.08, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: '.story-portrait', start: 'top 72%' } })
         gsap.to('.timeline-progress', { scaleX: 1, ease: 'none', scrollTrigger: { trigger: '.story-timeline', start: 'top 65%', end: 'bottom 60%', scrub: true } })
         gsap.from('.about-stat-value', { textContent: 0, duration: 1.6, snap: { textContent: 1 }, stagger: 0.15, ease: 'power2.out', scrollTrigger: { trigger: '.about-stat-grid', start: 'top 80%' } })
         gsap.to('.portrait-image', { yPercent: -7, ease: 'none', scrollTrigger: { trigger: '.story-portrait', start: 'top bottom', end: 'bottom top', scrub: true } })
         gsap.to('.mirror-reflection', { opacity: 0.75, y: -20, scrollTrigger: { trigger: '.mirror-section', start: 'top 75%', end: 'center center', scrub: true } })
-        gsap.from('.final-words span', { y: 45, opacity: 0, stagger: 0.12, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: '.about-final', start: 'top 72%' } })
+        gsap.from('.final-words span', { y: 45, stagger: 0.12, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: '.about-final', start: 'top 72%' } })
       }
     }, page)
-    return () => { ctx.revert(); if (ticker) gsap.ticker.remove(ticker); if (lenis) lenis.destroy() }
+    return () => { ctx.revert(); ScrollTrigger.getAll().forEach((trigger) => trigger.kill()) }
   }, [])
 
   const inspect = (part) => {
