@@ -1,0 +1,23 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "backend for babrbers project ",
+  "homepage": "https://github.com/corneliusishaka8-droid/barber#readme",
+  "bugs": {
+    "url": "https://github.com/corneliusishaka8-droid/barber/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/corneliusishaka8-droid/barber.git"
+  },
+  "license": "ISC",
+  "author": "cornelius ishaka",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

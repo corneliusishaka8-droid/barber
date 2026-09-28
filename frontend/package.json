@@ -1,0 +1,10 @@
+{
+  "name": "barber-frontend",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix barbars run dev",
+    "build": "npm --prefix barbars run build",
+    "lint": "npm --prefix barbars run lint",
+    "preview": "npm --prefix barbars run preview"
+  }
+}
