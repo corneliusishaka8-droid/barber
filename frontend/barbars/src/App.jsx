@@ -11,6 +11,8 @@ import ServicesPage from './pages/ServicesPage.jsx'
 import AboutPage from './pages/AboutPage.jsx'
 import ContactPage from './pages/ContactPage.jsx'
 import BookingPage from './pages/BookingPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import RegisterPage from './pages/RegisterPage.jsx'
 import './App.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -64,13 +66,14 @@ function Chair() {
   </group>
 }
 
-function Scene() {
-  return <Canvas dpr={[1, 1.6]} camera={{ position: [0, 1.1, 6], fov: 35 }} gl={{ antialias: true, alpha: true }}>
+function Scene({ onReady }) {
+  return <Canvas onCreated={() => onReady?.()} dpr={[1, 1.6]} camera={{ position: [0, 1.1, 6], fov: 35 }} gl={{ antialias: true, alpha: true }}>
     <color attach="background" args={['#090909']} />
     <ambientLight intensity={0.45} />
     <spotLight position={[3, 6, 3]} intensity={100} angle={0.38} penumbra={0.8} color="#f3c990" />
     <pointLight position={[-3, 1, 2]} intensity={18} color="#d78b49" />
-    <Suspense fallback={null}><Float speed={1.2} rotationIntensity={0.035} floatIntensity={0.15}><Chair /></Float><Environment preset="city" /></Suspense>
+    <Float speed={1.2} rotationIntensity={0.035} floatIntensity={0.15}><Chair /></Float>
+    <Suspense fallback={null}><Environment preset="city" /></Suspense>
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.05, 0]}><planeGeometry args={[200, 200]} /><meshStandardMaterial color="#080808" metalness={0.42} roughness={0.24} /></mesh>
     <ContactShadows position={[0, -1.03, 0]} opacity={0.55} scale={8} blur={2.5} far={4} />
   </Canvas>
@@ -86,12 +89,34 @@ const photos = [
   ['photo-1503951914875-452162b0f3f1', 'The ritual'], ['photo-1621605815971-fbc98d665033', 'Precision'], ['photo-1622286342621-4bd786c2447c', 'The details'], ['photo-1599351431202-1e0f0137899a', 'The finish'],
 ]
 function Photo({ id, className = '', label }) {
-  return <div className={`photo ${className}`} role="img" aria-label={label} style={{ backgroundImage: `linear-gradient(180deg, transparent 55%, rgba(0,0,0,.48)), url(https://images.unsplash.com/${id}?auto=format&fit=crop&w=1100&q=82)` }} />
+  const [loaded, setLoaded] = useState(false)
+  const imageUrl = `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1100&q=82`
+  useEffect(() => {
+    let active = true
+    const image = new Image()
+    image.onload = () => { if (active) setLoaded(true) }
+    image.onerror = () => { if (active) setLoaded(true) }
+    image.src = imageUrl
+    return () => { active = false }
+  }, [imageUrl])
+  return <div className={`photo ${className}${loaded ? ' is-loaded' : ''}`} role="img" aria-label={label} style={{ backgroundImage: loaded ? `linear-gradient(180deg, transparent 55%, rgba(0,0,0,.48)), url(${imageUrl})` : 'none' }}><span className="photo-skeleton" aria-hidden="true" /></div>
+}
+
+function SceneSkeleton({ hidden = false }) {
+  return <div className={`scene-skeleton${hidden ? ' is-hidden' : ''}`} aria-hidden="true"><span /><i /><b /></div>
+}
+
+function HomeLoadingSkeleton() {
+  return <div className="home-loading-skeleton" role="status" aria-label="Loading home page">
+    <div className="home-skeleton-nav"><i /><span /><span /><span /><b /></div>
+    <div className="home-skeleton-hero"><div className="home-skeleton-copy"><i /><b /><b /><span /><span /><em /></div><div className="home-skeleton-visual"><i /><b /></div></div>
+    <div className="home-skeleton-footer"><span /><i /><span /></div>
+    <span className="home-skeleton-status">PREPARING THE EXPERIENCE</span>
+  </div>
 }
 
 function LandingPage() {
   const [loading, setLoading] = useState(true)
-  const [progress, setProgress] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeStyle, setActiveStyle] = useState(0)
   const [scrolled, setScrolled] = useState(false)
@@ -100,6 +125,10 @@ function LandingPage() {
   const cursorRef = useRef(null)
   const videoRef = useRef(null)
   const chairRef = useRef(null)
+  const [chairSceneReady, setChairSceneReady] = useState(false)
+  const [bookingSceneReady, setBookingSceneReady] = useState(false)
+  const [videoReady, setVideoReady] = useState(false)
+  const [videoFailed, setVideoFailed] = useState(false)
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -114,27 +143,8 @@ function LandingPage() {
   }, [])
 
   useEffect(() => {
-    const timer = setInterval(() => setProgress((p) => {
-      const next = Math.min(p + 2 + Math.random() * 7, 100)
-      if (next === 100) clearInterval(timer)
-      return next
-    }), 42)
-    return () => clearInterval(timer)
-  }, [])
-
-  useEffect(() => {
-    if (progress < 100) return
-    const timer = setTimeout(() => setLoading(false), 500)
+    const timer = setTimeout(() => setLoading(false), 900)
     return () => clearTimeout(timer)
-  }, [progress])
-
-  useEffect(() => {
-    // The loader is decorative; it must never block access to the page.
-    const failsafe = setTimeout(() => {
-      setProgress(100)
-      setLoading(false)
-    }, 2500)
-    return () => clearTimeout(failsafe)
   }, [])
 
   useEffect(() => {
@@ -180,19 +190,19 @@ function LandingPage() {
   const closeMenu = () => setMenuOpen(false)
   const hoverProps = { onMouseEnter: () => setCursorActive(true), onMouseLeave: () => setCursorActive(false) }
   return <div className="site" ref={root}>
-    <div className={`loader ${loading ? '' : 'loader--out'}`} aria-hidden={!loading}><span className="loader-word">SARUM CUT</span><span className="loader-count">{String(Math.floor(progress)).padStart(2, '0')}<small> / 100</small></span><div className="loader-line"><i style={{ width: `${progress}%` }} /></div><span className="loader-caption">PREPARING THE EXPERIENCE</span><button className="loader-enter" onClick={() => { setProgress(100); setLoading(false) }}>ENTER EXPERIENCE <span>↗</span></button></div>
+    {loading && <HomeLoadingSkeleton />}
     <div ref={cursorRef} className={`cursor ${cursorActive ? 'cursor--active' : ''}`} aria-hidden="true"><span>VIEW</span></div>
     <header className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
       <HomeNavLink className="brand" onClick={closeMenu}>SARUM CUT<span>®</span></HomeNavLink>
       <nav className="nav-links" aria-label="Main navigation"><HomeNavLink>HOME</HomeNavLink><Link to="/services">SERVICES</Link><Link to="/about">ABOUT</Link><Link to="/contact">CONTACT</Link></nav>
-      <Link className="nav-book" to="/booking">BOOK A CHAIR <span>↗</span></Link>
+      <Link className="nav-book" to="/login">LOGIN <span>↗</span></Link>
       <button className={`menu-button ${menuOpen ? 'is-open' : ''}`} onClick={toggleMenu} aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen}><i /><i /></button>
     </header>
-    <div className={`mobile-menu ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}><span className="menu-label">NAVIGATE</span><HomeNavLink onClick={closeMenu}><small>01</small>HOME<span>↗</span></HomeNavLink>{[['SERVICES','/services'],['ABOUT','/about'],['CONTACT','/contact']].map(([name, href],i)=><Link key={name} to={href} onClick={closeMenu}><small>0{i+2}</small>{name}<span>↗</span></Link>)}<p>LAGOS · NIGERIA<br/>OPEN DAILY 09:00—20:00</p></div>
+    <div className={`mobile-menu ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}><span className="menu-label">NAVIGATE</span><HomeNavLink onClick={closeMenu}><small>01</small>HOME<span>↗</span></HomeNavLink>{[['SERVICES','/services'],['ABOUT','/about'],['CONTACT','/contact'],['LOGIN','/login']].map(([name, href],i)=><Link key={name} to={href} onClick={closeMenu}><small>0{i+2}</small>{name}<span>↗</span></Link>)}<p>LAGOS · NIGERIA<br/>OPEN DAILY 09:00—20:00</p></div>
 
     <main>
       <section className="hero" id="home">
-        <div className="hero-stage" ref={chairRef}><Scene /></div>
+        <div className="hero-stage" ref={chairRef}><Scene onReady={() => setChairSceneReady(true)} /><SceneSkeleton hidden={chairSceneReady} /></div>
         <div className="hero-vignette" />
         <div className="hero-topline"><span>EST. MMXIV — LAGOS, NG</span><span>CRAFTED FOR THE INDIVIDUAL</span></div>
         <div className="hero-copy"><p className="eyebrow"><i /> THE MODERN BARBERSHOP</p><h1>THE CRAFT<br/>OF <em>PRECISION</em><b>.</b></h1><div className="hero-bottom"><p>More than a cut.<br/>A study in who you are.</p><a href="#intro" className="round-link" aria-label="Scroll to discover">↓</a><span className="hero-index">01 / 06</span></div></div>
@@ -201,7 +211,7 @@ function LandingPage() {
 
       <section className="intro section-pad" id="intro"><div className="section-kicker reveal"><span>01 — OUR PHILOSOPHY</span><span>MADE BY HAND. NEVER BY HABIT.</span></div><div className="intro-content reveal"><p className="intro-overline">THE DETAILS ARE THE DIFFERENCE</p><h2>A GOOD CUT CHANGES<br/>MORE THAN <em>YOUR LOOK.</em></h2><div className="intro-bottom"><p>It changes the way you carry yourself. Every line, every blend, every final touch is considered. This is the craft of precision — and your time in our chair is where it begins.</p><a href="#about" className="text-link">GET TO KNOW US <span>↗</span></a></div></div></section>
 
-      <section className="film" id="work"><div className="film-backdrop" /><div className="film-heading"><span className="eyebrow">A CLOSER LOOK AT THE CRAFT</span><h2 className="film-title">PRECISION<br/><em>IN MOTION</em></h2></div><div className="film-frame"><video ref={videoRef} muted playsInline preload="metadata" poster="https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1800&q=85" aria-label="Cinematic barber at work"><source src="/videos/haircut.mp4" type="video/mp4" /></video><div className="video-placeholder"><span>01 — THE RITUAL</span></div></div><div className="film-caption"><span>THE RESULT</span><span>EVERY MOVEMENT, INTENTIONAL.</span></div><span className="film-scroll">SCROLL TO REVEAL · 00—100</span></section>
+      <section className="film" id="work"><div className="film-backdrop" /><div className="film-heading"><span className="eyebrow">A CLOSER LOOK AT THE CRAFT</span><h2 className="film-title">PRECISION<br/><em>IN MOTION</em></h2></div><div className={`film-frame${videoReady ? ' is-video-ready' : ''}`}><video ref={videoRef} muted playsInline preload="metadata" poster="https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1800&q=85" aria-label="Cinematic barber at work" onLoadedData={() => setVideoReady(true)} onError={() => setVideoFailed(true)}><source src="/videos/haircut.mp4" type="video/mp4" /></video>{!videoReady && !videoFailed && <div className="video-skeleton" aria-hidden="true" />}<div className="video-placeholder"><span>01 — THE RITUAL</span></div></div><div className="film-caption"><span>THE RESULT</span><span>EVERY MOVEMENT, INTENTIONAL.</span></div><span className="film-scroll">SCROLL TO REVEAL · 00—100</span></section>
 
       <section className="styles" aria-label="Haircut styles"><div className="styles-inner"><div className="styles-visual"><div className="portrait-frame"><Photo id="photo-1503951914875-452162b0f3f1" label="Portrait of a fresh modern haircut"/><span className="portrait-index">STYLE STUDY / 0{activeStyle+1}</span><span className="portrait-cross">+</span></div><div className="style-orbit">BARBER · PRECISION · BARBER · PRECISION ·</div></div><div className="styles-copy"><p className="eyebrow">02 — THE FINISH</p><span className="style-number">0{Math.min(activeStyle+1,5)}</span><h2>{['LONG','MEDIUM','TAPER','FADE','FINISHED'][activeStyle]}</h2><p className="style-desc">Every style begins with a conversation. We find the shape that feels like you, then make every detail count.</p><div className="style-steps">{['LONG','MEDIUM','TAPER','FADE','FINISHED'].map((s,i)=><span key={s} className={activeStyle===i?'active':''}>{`0${i+1}`}<i>{s}</i></span>)}</div><span className="drag-cue">↔ &nbsp; DRAG TO EXPLORE</span></div></div></section>
 
@@ -211,7 +221,7 @@ function LandingPage() {
 
       <section className="gallery section-pad"><div className="section-kicker reveal"><span>05 — SELECTED MOMENTS</span><span>THE WORK SPEAKS</span></div><div className="gallery-head reveal"><h2>IN GOOD<br/><em>COMPANY.</em></h2><p>A few moments from the chair.<br/>More on the gram <a href="https://instagram.com" target="_blank" rel="noreferrer">@barber.studio ↗</a></p></div><div className="gallery-grid">{photos.map(([id,label],i)=><figure key={id} className={`gallery-item item-${i+1}`}><Photo id={id} label={label}/><figcaption><span>0{i+1} — {label.toUpperCase()}</span><span>↗</span></figcaption></figure>)}</div></section>
 
-      <section className="booking" id="booking"><div className="booking-text"><p className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p><h2>YOUR CHAIR<br/>IS <em>WAITING.</em></h2><p className="booking-sub">A considered cut is one conversation away.</p><a href="https://wa.me/2348000000000" className="booking-link" {...hoverProps}><span>BOOK YOUR APPOINTMENT</span><i>↗</i></a></div><div className="booking-chair"><Scene /></div><span className="booking-mark">B<span>®</span></span></section>
+      <section className="booking" id="booking"><div className="booking-text"><p className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p><h2>YOUR CHAIR<br/>IS <em>WAITING.</em></h2><p className="booking-sub">A considered cut is one conversation away.</p><a href="https://wa.me/2348000000000" className="booking-link" {...hoverProps}><span>BOOK YOUR APPOINTMENT</span><i>↗</i></a></div><div className="booking-chair"><Scene onReady={() => setBookingSceneReady(true)} /><SceneSkeleton hidden={bookingSceneReady} /></div><span className="booking-mark">B<span>®</span></span></section>
     </main>
     <footer id="contact"><div className="footer-main"><Link className="footer-brand" to="/">SARUM CUT<span>®</span></Link><div className="footer-motto">THE CRAFT OF PRECISION.<br/><span>THE COMFORT OF YOUR OWN CHAIR.</span></div><a href="https://maps.google.com/?q=Lagos+Nigeria" target="_blank" rel="noreferrer" className="footer-address">LAGOS, NIGERIA <span>↗</span></a></div><div className="footer-lower"><span>© 2026 SARUM CUT STUDIO</span><div><a href="https://instagram.com" target="_blank" rel="noreferrer">INSTAGRAM ↗</a><a href="https://tiktok.com" target="_blank" rel="noreferrer">TIKTOK ↗</a><a href="mailto:hello@barber.studio">EMAIL ↗</a></div><HomeNavLink>BACK TO HOME ↑</HomeNavLink></div></footer>
   </div>
@@ -227,6 +237,8 @@ function App() {
     <Route path="/about" element={<AboutPage />} />
     <Route path="/contact" element={<ContactPage />} />
     <Route path="/booking" element={<BookingPage />} />
+    <Route path="/login" element={<LoginPage />} />
+    <Route path="/register" element={<RegisterPage />} />
     <Route path="*" element={null} />
     </Routes>
   </>

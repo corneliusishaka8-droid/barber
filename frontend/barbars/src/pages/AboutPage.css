@@ -3,3 +3,4 @@
 @media(prefers-reduced-motion:reduce){.about-page *{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .about-page{overflow-x:clip;overflow-y:visible}
 .scene-in-view,.about-hero-scene>.scene-in-view,.clipper-canvas>.scene-in-view,.workshop-canvas>.scene-in-view,.chair-scene>.scene-in-view{width:100%;height:100%}.about-stat small{font:12px var(--mono);color:var(--agold);margin-top:-13px}
+.about-nav-actions{display:flex;align-items:center;gap:22px}

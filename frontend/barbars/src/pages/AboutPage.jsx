@@ -78,18 +78,16 @@ function Clipper({ partsRef, onInspect, powered }) {
   </group>
 }
 
-function ClipperExperience({ partsRef, onInspect, powered }) {
-  return <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0.1, 5.2], fov: 34 }} gl={{ antialias: true, alpha: true }} shadows="percentage">
+export function ClipperExperience({ partsRef, onInspect, powered, cameraDistance = 5.2, onReady }) {
+  return <Canvas onCreated={() => onReady?.()} dpr={[1, 1.5]} camera={{ position: [0, 0.1, cameraDistance], fov: 34 }} gl={{ antialias: true, alpha: true }} shadows="percentage">
     <color attach="background" args={['#0b0b0a']} />
     <ambientLight intensity={0.45} />
     <spotLight position={[3, 5, 4]} intensity={85} color="#edd2aa" angle={0.36} penumbra={0.8} castShadow />
     <pointLight position={[-3, 0, 1]} intensity={18} color="#c98c52" />
-    <Suspense fallback={null}>
-      <Float speed={0.85} rotationIntensity={0.025} floatIntensity={0.08}>
-        <Clipper partsRef={partsRef} onInspect={onInspect} powered={powered} />
-      </Float>
-      <Environment preset="studio" />
-    </Suspense>
+    <Float speed={0.85} rotationIntensity={0.025} floatIntensity={0.08}>
+      <Clipper partsRef={partsRef} onInspect={onInspect} powered={powered} />
+    </Float>
+    <Suspense fallback={null}><Environment preset="studio" /></Suspense>
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.75, 0]} receiveShadow><planeGeometry args={[30, 30]} /><meshStandardMaterial color="#0c0c0b" metalness={0.48} roughness={0.28} /></mesh>
     <ContactShadows position={[0, -1.72, 0]} opacity={0.52} scale={7} blur={2.2} far={4} />
     <OrbitControls enablePan={false} enableZoom={false} enableDamping dampingFactor={0.075} minPolarAngle={Math.PI * 0.32} maxPolarAngle={Math.PI * 0.68} />
@@ -184,7 +182,7 @@ export default function AboutPage() {
   }
 
   return <div className="about-page" ref={page}>
-    <header className="about-nav"><Link to="/" className="about-brand">SARUM CUT<span>®</span></Link><span className="about-nav-title">THE CRAFT, UP CLOSE</span><Link to="/" className="about-home">← HOME</Link></header>
+    <header className="about-nav"><Link to="/" className="about-brand">SARUM CUT<span>®</span></Link><span className="about-nav-title">THE CRAFT, UP CLOSE</span><div className="about-nav-actions"><Link to="/" className="about-home">← HOME</Link><Link to="/login" className="about-home">LOGIN ↗</Link></div></header>
     <main>
       <AboutHero scene={<SceneInView><ClipperExperience partsRef={heroClipperParts} onInspect={inspect} powered={powered} /></SceneInView>} />
       <ClipperSection scene={<SceneInView><ClipperExperience partsRef={clipperParts} onInspect={inspect} powered={powered} /></SceneInView>} activePart={activePart} powered={powered} interacted={interacted} />
