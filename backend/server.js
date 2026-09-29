@@ -28,7 +28,7 @@ app.use("/api", apiRouter)
 //     })
 // })
 
-app.get("/{*splat}", (req, res) => {
-    res.sendFile(path.join(frontend, "index.html"))
-})
+// app.get("/{*splat}", (req, res) => {
+//     res.sendFile(path.join(frontend, "index.html"))
+// })
 app.listen(port, () => console.log(`Example app listening on port  https://locahost::${port}  !`)) 
