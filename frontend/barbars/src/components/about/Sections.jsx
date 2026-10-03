@@ -22,7 +22,7 @@ export function PhilosophySection() {
 }
 
 export function StorySection() {
-  return <section className="story-section"><div className="story-portrait"><div className="portrait-image" role="img" aria-label="Portrait of a Lagos barber" /><div className="portrait-caption"><span>ADE / FOUNDER & MASTER BARBER</span><span>LAGOS, NIGERIA — 06°27' N</span></div><span className="portrait-number">01</span></div><div className="story-copy about-reveal"><span className="about-eyebrow">05 — THE STORY</span><h2>A CRAFT<br/>LEARNED <em>BY HAND.</em></h2><p>It started with a chair, a set of well-used tools, and a belief that the small things deserved just as much care as the big ones.</p><p>Over the years, the work became a practice. A conversation before the first cut. A steady hand through every line. A little more time spent getting the shape right.</p><p>Now, the chair is a place to pause, reset, and leave feeling more like yourself. That is the measure we come back to, every day.</p><Link to="/booking" className="about-text-link">MEET US IN THE CHAIR <span>↗</span></Link></div></section>
+  return <section className="story-section"><div className="story-portrait"><div className="portrait-image" role="img" aria-label="Portrait of a Lagos barber" /><div className="portrait-caption"><span>ADE / FOUNDER & MASTER BARBER</span><span>LAGOS, NIGERIA — 06°27' N</span></div><span className="portrait-number">01</span></div><div className="story-copy about-reveal"><span className="about-eyebrow">05 — THE STORY</span><h2>A CRAFT<br/>LEARNED <em>BY HAND.</em></h2><p>It started with a chair, a set of well-used tools, and a belief that the small things deserved just as much care as the big ones.</p><p>Over the years, the work became a practice. A conversation before the first cut. A steady hand through every line. A little more time spent getting the shape right.</p><p>Now, the chair is a place to pause, reset, and leave feeling more like yourself. That is the measure we come back to, every day.</p><Link to="/book-now" className="about-text-link">MEET US IN THE CHAIR <span>↗</span></Link></div></section>
 }
 
 export function TimelineSection() {
@@ -40,7 +40,7 @@ export function MirrorSection() {
 }
 
 export function FinalSection() {
-  return <section className="about-final"><span className="about-eyebrow">THE TOOLS ARE READY.</span><h2 className="final-words"><span>TOOLS ARE</span><span>JUST <em>TOOLS.</em></span><span>THE CRAFT IS IN</span><span>THE HANDS THAT USE THEM.</span></h2><Link to="/booking" className="about-book-link">BOOK YOUR CHAIR <span>↗</span></Link></section>
+  return <section className="about-final"><span className="about-eyebrow">THE TOOLS ARE READY.</span><h2 className="final-words"><span>TOOLS ARE</span><span>JUST <em>TOOLS.</em></span><span>THE CRAFT IS IN</span><span>THE HANDS THAT USE THEM.</span></h2><Link to="/book-now" className="about-book-link">BOOK YOUR CHAIR <span>↗</span></Link></section>
 }
 
 export function AboutFooter() {

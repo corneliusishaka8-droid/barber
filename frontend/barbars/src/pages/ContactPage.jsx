@@ -79,6 +79,6 @@ export default function ContactPage() {
       </section>
     </main>
 
-    <footer className="contact-footer"><Link to="/" className="contact-brand">SARUM CUT<span>®</span></Link><span>THE CRAFT OF PRECISION · THE COMFORT OF YOUR OWN CHAIR</span><Link to="/booking">BOOK A CHAIR ↗</Link></footer>
+    <footer className="contact-footer"><Link to="/" className="contact-brand">SARUM CUT<span>®</span></Link><span>THE CRAFT OF PRECISION · THE COMFORT OF YOUR OWN CHAIR</span><Link to="/book-now">BOOK A CHAIR ↗</Link></footer>
   </div>
 }

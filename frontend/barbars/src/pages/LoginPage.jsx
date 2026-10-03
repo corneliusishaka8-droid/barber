@@ -1,13 +1,56 @@
-﻿import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import API__url from '../api.js'
+import { useAuth } from '../auth/useAuth.js'
 import './LoginPage.css'
 
 export default function LoginPage() {
-  const [message, setMessage] = useState('')
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const [message, setMessage] = useState(() => {
+    if (searchParams.get('auth') === 'google-unavailable') return 'Google sign-in is not configured on the server yet.'
+    if (searchParams.get('auth') === 'google-failed') return 'Google sign-in could not be completed. Please try again.'
+    return ''
+  })
+  const { setUser } = useAuth()
 
-  const handleSubmit = (event) => {
+  const handleGoogleLogin = () => {
+    const requestedPath = location.state?.from
+    const returnTo = requestedPath?.pathname?.startsWith('/') && !requestedPath.pathname.startsWith('//')
+      ? `${requestedPath.pathname}${requestedPath.search || ''}${requestedPath.hash || ''}`
+      : '/profile'
+    window.location.assign(`${API__url}/auth/google?returnTo=${encodeURIComponent(returnTo)}`)
+  }
+
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    setMessage('Sign-in is not connected yet. Please check back soon.')
+    const formData = new FormData(event.currentTarget)
+
+    try {
+      const response = await fetch(`${API__url}/login`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: formData.get('username'),
+          password: formData.get('password'),
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok || !data.user) {
+        setMessage(data.message || 'Those login details could not be verified.')
+        return
+      }
+      setUser(data.user)
+      const requestedPath = location.state?.from
+      const destination = requestedPath?.pathname?.startsWith('/') && !requestedPath.pathname.startsWith('//')
+        ? `${requestedPath.pathname}${requestedPath.search || ''}${requestedPath.hash || ''}`
+        : '/profile'
+      navigate(destination, { replace: true })
+    } catch {
+      setMessage('Unable to connect to the server.')
+    }
   }
 
   return <div className="login-page">
@@ -36,7 +79,7 @@ export default function LoginPage() {
             <label className="login-field"><span>PASSWORD</span><input type="password" name="password" autoComplete="current-password" placeholder="Enter your password" required /></label>
             <button className="login-submit" type="submit"><span>SIGN IN</span><b aria-hidden="true">↗</b></button>
             <div className="login-divider"><span />OR CONTINUE WITH<span /></div>
-            <button className="login-google" type="button" onClick={() => setMessage('Google sign-in is not connected yet. Please check back soon.')}><span className="google-mark" aria-hidden="true">G</span> CONTINUE WITH GOOGLE <b aria-hidden="true">↗</b></button>
+            <button className="login-google" type="button" onClick={handleGoogleLogin}><span className="google-mark" aria-hidden="true">G</span> CONTINUE WITH GOOGLE <b aria-hidden="true">↗</b></button>
             <p className="login-feedback" role="status" aria-live="polite">{message}</p>
           </form>
           <p className="login-register">NEW TO SARUM CUT? <Link to="/register">CREATE AN ACCOUNT <span>↗</span></Link></p>

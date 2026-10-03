@@ -2,33 +2,54 @@ import express from "express"
 import cors from "cors"
 import path from "path"
 import { fileURLToPath } from "url"
+import { randomBytes } from "node:crypto"
 import apiRouter from "./routes/api.js"
+import db from "./db.js"
+import passport from "./passport.js"
+import session from "express-session"
+import "dotenv/config"
+
+const port = Number(process.env.PORT) || 3000
+const sessionSecret = process.env.SESSION_SECRET || (process.env.NODE_ENV === "production" ? "" : randomBytes(32).toString("hex"))
+if (!sessionSecret) throw new Error("SESSION_SECRET must be set in production.")
+const allowedFrontendOrigins = new Set((process.env.FRONTEND_ORIGIN || "").split(",").map((origin) => origin.trim()).filter(Boolean))
 
 const app = express()
+app.use(cors({
+  origin(origin, callback) {
+    const localDevelopmentOrigin = process.env.NODE_ENV !== "production" && /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin || "")
+    callback(null, !origin || allowedFrontendOrigins.has(origin) || localDevelopmentOrigin)
+  },
+  credentials: true,
+}))
+app.use(express.json({ limit: "32kb" }))
+app.use(session({
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: process.env.SESSION_COOKIE_SAME_SITE || "lax",
+      secure: process.env.NODE_ENV === "production",
+    },
+}))
+
+
+app.use(passport.initialize())
+app.use(passport.session())
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const frontend = path.join(__dirname, "../frontend/barbars/dist")
-app.use(express.static(frontend))
-const port = 3000
-app.use(cors())
-app.use(express.json())
+
 app.use("/api", apiRouter)
 
+// In production, serve the built React app from this same server.
+app.use(express.static(frontend))
 
-// app.get("/api/message" , (req, res) => {
-//     res.json({
-//        message:"Hello World!"
-//     })
-// })
+// Return React's entry page for browser routes such as /register after a refresh.
+app.get("/{*splat}", (req, res) => {
+  res.sendFile(path.join(frontend, "index.html"))
+})
 
-// app.post("/api/message", (req, res) => {
-//     const { message } = req.body
-//     res.json({
-//         message: `You sent: ${message}`
-//     })
-// })
-
-// app.get("/{*splat}", (req, res) => {
-//     res.sendFile(path.join(frontend, "index.html"))
-// })
-app.listen(port, () => console.log(`Example app listening on port  https://locahost::${port}  !`)) 
+app.listen(port, () => console.log(`Sarum Cut backend listening at http://localhost:${port}`))

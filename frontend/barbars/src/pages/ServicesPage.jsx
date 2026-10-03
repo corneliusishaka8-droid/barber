@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { hairstyles, hairstyleCategories } from '../data/hairstyles.js'
@@ -67,7 +67,7 @@ function StyleStudio({ selected, setSelected, selectedCategory, setSelectedCateg
           <p className="style-description">{selected.description}</p>
           <Price style={selected} />
           <div className="style-duration"><span>ESTIMATED SESSION</span><strong>{selected.duration}</strong></div>
-          <Link className="services-action services-action--filled" to={`/contact?style=${selected.id}`} state={{ selectedStyle: selected.name }}>BOOK THIS STYLE <span>↗</span></Link>
+          <Link className="services-action services-action--filled" to={`/book-now?style=${selected.id}`} state={{ selectedStyle: selected.name }}>BOOK THIS STYLE <span>↗</span></Link>
         </div>
         <div className="studio-side-note"><span>CONSULTATION INCLUDED</span><span>01 — 08</span></div>
       </article>
@@ -164,10 +164,10 @@ export default function ServicesPage() {
       <WhySarum />
       <section className="services-cta">
         <span className="services-eyebrow">05 / MAKE IT YOURS</span><h2>Ready for your<br /><em>next look?</em></h2><p>Choose your style and start planning your session.</p>
-        <div><Link to={`/contact?style=${selected.id}`} state={{ selectedStyle: selected.name }} className="services-action services-action--filled">BOOK {selected.shortName} <span>↗</span></Link><Link to="/contact" className="services-action">CONTACT THE STUDIO <span>↗</span></Link></div>
+        <div><Link to={`/book-now?style=${selected.id}`} state={{ selectedStyle: selected.name }} className="services-action services-action--filled">BOOK {selected.shortName} <span>↗</span></Link><Link to="/book-now" className="services-action">CONTACT THE STUDIO <span>↗</span></Link></div>
         <span className="services-cta-index">SARUM CUT® / LAGOS</span>
       </section>
     </main>
-    <footer className="services-footer"><Link to="/" className="services-brand">SARUM CUT<span>®</span></Link><span>THE CRAFT OF PRECISION · THE COMFORT OF YOUR OWN CHAIR</span><Link to="/contact">BOOK A CHAIR ↗</Link></footer>
+    <footer className="services-footer"><Link to="/" className="services-brand">SARUM CUT<span>®</span></Link><span>THE CRAFT OF PRECISION · THE COMFORT OF YOUR OWN CHAIR</span><Link to="/book-now">BOOK A CHAIR ↗</Link></footer>
   </div>
 }

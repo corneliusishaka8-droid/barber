@@ -4,7 +4,7 @@ import { Environment, ContactShadows, Float } from '@react-three/drei'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
-import { Link, Route, Routes, useLocation } from 'react-router-dom'
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import * as THREE from 'three'
 import WorkPage from './pages/WorkPage.jsx'
 import ServicesPage from './pages/ServicesPage.jsx'
@@ -13,6 +13,10 @@ import ContactPage from './pages/ContactPage.jsx'
 import BookingPage from './pages/BookingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
+import ProfilePage from './pages/ProfilePage.jsx'
+import LegalPage from './pages/LegalPage.jsx'
+import AuthProvider from './auth/AuthProvider.jsx'
+import { useAuth } from './auth/useAuth.js'
 import './App.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -23,6 +27,15 @@ function ScrollToRouteTop() {
     window.scrollTo(0, 0)
   }, [pathname])
   return null
+}
+
+function RequireAuth({ children }) {
+  const { user, loading } = useAuth()
+  const location = useLocation()
+
+  if (loading) return <div className="auth-route-check" role="status">CHECKING MEMBER ACCESS…</div>
+  if (!user) return <Navigate to="/login" replace state={{ from: location }} />
+  return children
 }
 
 function HomeNavLink({ className, children, onClick }) {
@@ -215,20 +228,20 @@ function LandingPage() {
 
       <section className="styles" aria-label="Haircut styles"><div className="styles-inner"><div className="styles-visual"><div className="portrait-frame"><Photo id="photo-1503951914875-452162b0f3f1" label="Portrait of a fresh modern haircut"/><span className="portrait-index">STYLE STUDY / 0{activeStyle+1}</span><span className="portrait-cross">+</span></div><div className="style-orbit">BARBER · PRECISION · BARBER · PRECISION ·</div></div><div className="styles-copy"><p className="eyebrow">02 — THE FINISH</p><span className="style-number">0{Math.min(activeStyle+1,5)}</span><h2>{['LONG','MEDIUM','TAPER','FADE','FINISHED'][activeStyle]}</h2><p className="style-desc">Every style begins with a conversation. We find the shape that feels like you, then make every detail count.</p><div className="style-steps">{['LONG','MEDIUM','TAPER','FADE','FINISHED'].map((s,i)=><span key={s} className={activeStyle===i?'active':''}>{`0${i+1}`}<i>{s}</i></span>)}</div><span className="drag-cue">↔ &nbsp; DRAG TO EXPLORE</span></div></div></section>
 
-      <section className="services" id="services"><div className="services-track"><div className="service-intro"><span className="eyebrow">03 — THE MENU</span><h2>MADE TO<br/>BE <em>YOURS.</em></h2><p>Four ways to leave feeling more like yourself.</p><span className="side-note">OUR SERVICES · 2026</span></div>{services.map(([number,title,description,price,icon])=><article className="service-panel" key={number}><div className="service-top"><span>{number} / 04</span><span>{icon}</span></div><div><h3>{title}</h3><p>{description}</p></div><div className="service-bottom"><strong>{price}</strong><a href="#booking" className="service-book">BOOK <span>↗</span></a></div><span className="service-watermark">{number}</span></article>)}</div></section>
+      <section className="services" id="services"><div className="services-track"><div className="service-intro"><span className="eyebrow">03 — THE MENU</span><h2>MADE TO<br/>BE <em>YOURS.</em></h2><p>Four ways to leave feeling more like yourself.</p><span className="side-note">OUR SERVICES · 2026</span></div>{services.map(([number,title,description,price,icon])=><article className="service-panel" key={number}><div className="service-top"><span>{number} / 04</span><span>{icon}</span></div><div><h3>{title}</h3><p>{description}</p></div><div className="service-bottom"><strong>{price}</strong><Link to="/book-now" className="service-book">BOOK <span>↗</span></Link></div><span className="service-watermark">{number}</span></article>)}</div></section>
 
       <section className="about section-pad" id="about"><div className="section-kicker reveal"><span>04 — THE BARBER</span><span>THE HAND BEHIND THE WORK</span></div><div className="about-grid"><div className="about-image reveal"><Photo id="photo-1503951914875-452162b0f3f1" label="Master barber in his studio"/><span className="image-caption">ADE — FOUNDER & MASTER BARBER</span><span className="image-count">LAGOS / NIGERIA</span></div><div className="about-copy reveal"><p className="eyebrow">A PERSONAL APPROACH</p><h2>MASTER<br/>THE<br/><em>CRAFT.</em></h2><p className="about-text">“The best haircut isn’t the one that gets noticed. It’s the one that feels like it was always yours.”</p><div className="stats"><div><strong className="stat-number">12</strong><span>YEARS OF EXPERIENCE</span></div><div><strong className="stat-number">500</strong><span>CLIENTS & COUNTING</span></div></div><a href="#contact" className="text-link">A LITTLE MORE ABOUT US <span>↗</span></a></div></div></section>
 
       <section className="gallery section-pad"><div className="section-kicker reveal"><span>05 — SELECTED MOMENTS</span><span>THE WORK SPEAKS</span></div><div className="gallery-head reveal"><h2>IN GOOD<br/><em>COMPANY.</em></h2><p>A few moments from the chair.<br/>More on the gram <a href="https://instagram.com" target="_blank" rel="noreferrer">@barber.studio ↗</a></p></div><div className="gallery-grid">{photos.map(([id,label],i)=><figure key={id} className={`gallery-item item-${i+1}`}><Photo id={id} label={label}/><figcaption><span>0{i+1} — {label.toUpperCase()}</span><span>↗</span></figcaption></figure>)}</div></section>
 
-      <section className="booking" id="booking"><div className="booking-text"><p className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p><h2>YOUR CHAIR<br/>IS <em>WAITING.</em></h2><p className="booking-sub">A considered cut is one conversation away.</p><a href="https://wa.me/2348000000000" className="booking-link" {...hoverProps}><span>BOOK YOUR APPOINTMENT</span><i>↗</i></a></div><div className="booking-chair"><Scene onReady={() => setBookingSceneReady(true)} /><SceneSkeleton hidden={bookingSceneReady} /></div><span className="booking-mark">B<span>®</span></span></section>
+      <section className="booking" id="booking"><div className="booking-text"><p className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p><h2>YOUR CHAIR<br/>IS <em>WAITING.</em></h2><p className="booking-sub">A considered cut is one conversation away.</p><Link to="/book-now" className="booking-link" {...hoverProps}><span>BOOK YOUR APPOINTMENT</span><i>↗</i></Link></div><div className="booking-chair"><Scene onReady={() => setBookingSceneReady(true)} /><SceneSkeleton hidden={bookingSceneReady} /></div><span className="booking-mark">B<span>®</span></span></section>
     </main>
     <footer id="contact"><div className="footer-main"><Link className="footer-brand" to="/">SARUM CUT<span>®</span></Link><div className="footer-motto">THE CRAFT OF PRECISION.<br/><span>THE COMFORT OF YOUR OWN CHAIR.</span></div><a href="https://maps.google.com/?q=Lagos+Nigeria" target="_blank" rel="noreferrer" className="footer-address">LAGOS, NIGERIA <span>↗</span></a></div><div className="footer-lower"><span>© 2026 SARUM CUT STUDIO</span><div><a href="https://instagram.com" target="_blank" rel="noreferrer">INSTAGRAM ↗</a><a href="https://tiktok.com" target="_blank" rel="noreferrer">TIKTOK ↗</a><a href="mailto:hello@barber.studio">EMAIL ↗</a></div><HomeNavLink>BACK TO HOME ↑</HomeNavLink></div></footer>
   </div>
 }
 
 function App() {
-  return <>
+  return <AuthProvider><>
     <ScrollToRouteTop />
     <Routes>
     <Route path="/" element={<LandingPage />} />
@@ -236,12 +249,16 @@ function App() {
     <Route path="/services" element={<ServicesPage />} />
     <Route path="/about" element={<AboutPage />} />
     <Route path="/contact" element={<ContactPage />} />
-    <Route path="/booking" element={<BookingPage />} />
+    <Route path="/booking" element={<RequireAuth><BookingPage /></RequireAuth>} />
+    <Route path="/book-now" element={<RequireAuth><BookingPage /></RequireAuth>} />
     <Route path="/login" element={<LoginPage />} />
     <Route path="/register" element={<RegisterPage />} />
+    <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+    <Route path="/privacy" element={<LegalPage type="privacy" />} />
+    <Route path="/terms" element={<LegalPage type="terms" />} />
     <Route path="*" element={null} />
     </Routes>
-  </>
+  </></AuthProvider>
 }
 
 export default App

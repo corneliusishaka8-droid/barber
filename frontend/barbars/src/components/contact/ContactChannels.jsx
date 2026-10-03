@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { contactChannels, contactConfig } from './contactConfig.js'
 
 function getChannelUrl(channel) {
-  if (channel.key === 'booking') return '/booking'
+  if (channel.key === 'booking') return '/book-now'
   if (channel.key === 'email') return contactConfig.email ? `mailto:${contactConfig.email}` : ''
   const value = contactConfig[channel.key]?.trim()
   return value && /^https:\/\//i.test(value) ? value : ''

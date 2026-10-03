@@ -15,10 +15,18 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
+    "pg": "^8.23.0"
   }
 }
