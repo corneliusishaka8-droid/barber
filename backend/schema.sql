@@ -1,5 +1,4 @@
--- Sarum Cut account schema for PostgreSQL.
--- Run this against the database named by DB_NAME before implementing Passport auth.
+-- Apply this schema to the PostgreSQL database before using account registration or login.
 
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -18,8 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT users_has_auth_method CHECK (password_hash IS NOT NULL OR google_id IS NOT NULL)
 );
 
--- Passport's default session support needs a persistent store in production.
--- This table matches the schema expected by connect-pg-simple.
+-- This table persists Passport sessions; connect-pg-simple creates it automatically
+-- on startup if it does not exist.
 CREATE TABLE IF NOT EXISTS "session" (
     sid VARCHAR NOT NULL PRIMARY KEY,
     sess JSON NOT NULL,

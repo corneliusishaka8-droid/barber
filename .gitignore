@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output and coverage
+dist/
+dist-ssr/
+coverage/
+
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+!.envexample
+!**/.envexample
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

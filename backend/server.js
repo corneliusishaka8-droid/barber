@@ -7,14 +7,17 @@ import apiRouter from "./routes/api.js"
 import db from "./db.js"
 import passport from "./passport.js"
 import session from "express-session"
+import connectPgSimple from "connect-pg-simple"
 import "dotenv/config"
 
 const port = Number(process.env.PORT) || 3000
 const sessionSecret = process.env.SESSION_SECRET || (process.env.NODE_ENV === "production" ? "" : randomBytes(32).toString("hex"))
 if (!sessionSecret) throw new Error("SESSION_SECRET must be set in production.")
 const allowedFrontendOrigins = new Set((process.env.FRONTEND_ORIGIN || "").split(",").map((origin) => origin.trim()).filter(Boolean))
+const PgSessionStore = connectPgSimple(session)
 
 const app = express()
+app.set("trust proxy", 1)
 app.use(cors({
   origin(origin, callback) {
     const localDevelopmentOrigin = process.env.NODE_ENV !== "production" && /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin || "")
@@ -27,10 +30,12 @@ app.use(session({
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
+    store: new PgSessionStore({ pool: db, createTableIfMissing: true }),
     cookie: {
       httpOnly: true,
       sameSite: process.env.SESSION_COOKIE_SAME_SITE || "lax",
       secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     },
 }))
 

@@ -1,106 +1,139 @@
-﻿# Sarum Cut Barber Studio
+# Sarum Cut Barber Studio
 
-A React and Three.js website for a modern barber studio, with an Express backend. The visual direction is dark and editorial, with warm gold accents, fine borders, interactive 3D scenes, and responsive layouts.
+A full-stack barber studio website and member portal built with React, Vite, Express, Passport, and PostgreSQL. The frontend is built and served by the Express server in production, so the application can be deployed as a single web service.
 
 ## Project structure
 
 ```text
 barbers/
 ├── backend/
-│   ├── routes/api.js             # Express API routes
-│   ├── server.js                 # API server and production static hosting
-│   ├── package.json
-│   └── package-lock.json
-└── frontend/
-    ├── package.json              # Convenience scripts for the Vite app
-    └── barbars/
-        ├── public/
-        │   ├── images/hairstyles/ # Local hairstyle preview artwork
-        │   └── textures/         # Earth globe textures
-        ├── src/
-        │   ├── components/about/
-        │   ├── components/contact/
-        │   ├── data/              # Hairstyle and service catalogues
-        │   ├── pages/
-        │   ├── App.jsx            # React Router and home page
-        │   └── main.jsx
-        ├── package.json
-        └── vite.config.js
+│   ├── routes/api.js             # Authentication, contact and session API
+│   ├── schema.sql                # PostgreSQL user and session tables
+│   ├── server.js                 # Express API and production static hosting
+│   ├── db.js                     # PostgreSQL connection pool
+│   ├── passport.js               # Local and optional Google OAuth strategies
+│   └── package.json
+├── frontend/
+│   ├── package.json              # Convenience scripts
+│   └── barbars/
+│       ├── src/
+│       │   ├── auth/
+│       │   ├── components/
+│       │   ├── data/
+│       │   └── pages/
+│       ├── package.json
+│       └── vite.config.js
+├── .github/workflows/ci.yml      # GitHub lint, build and syntax checks
+├── render.yaml                  # Render Blueprint web service
+└── .node-version                # Node.js version used for deployment
 ```
 
-There is no single root `package.json`; install and run dependencies from the relevant app directory.
+## Features
 
-## Frontend
+- Responsive dark-and-gold barber studio site with interactive 3D scenes.
+- Service and hairstyle catalogues with local artwork and pricing.
+- Contact and booking inquiry forms.
+- Username/password registration and login, with optional Google OAuth.
+- Protected member profile and booking pages.
+- PostgreSQL-backed user records and persistent login sessions.
 
-The Vite app is in `frontend/barbars`. It uses React, React Router, Three.js with React Three Fiber and Drei, GSAP, and Lenis.
+## Routes
 
-### Pages and routes
+### Frontend
 
-| Route | Current page |
+| Path | Page |
 | --- | --- |
-| `/` | Cinematic home page with an interactive 3D barber chair, service menu, style showcase, gallery, and booking call to action. |
-| `/services` | Interactive hairstyle studio with category filters, local hairstyle artwork, descriptions, static NGN/USD prices and durations, service catalogue, studio/home-service options, benefits, and contact links. |
-| `/about` | Brand story and craft page with interactive 3D clipper, tool display, chair scene, and editorial story sections. |
-| `/contact` | Contact form, contact channels, Lagos information, and an interactive 3D clipper. Service and style links can prefill the contact form. |
-| `/login` | Styled login interface with username/password fields and a Google sign-in button. Authentication is not connected; actions show an unavailable message. |
-| `/register` | Intentionally blank placeholder route. |
-| `/booking` | Intentionally blank placeholder route. |
-| `/work` | Intentionally blank placeholder route. |
+| `/` | Home |
+| `/services` | Services and style catalogue |
+| `/about` | Studio story |
+| `/contact` | Contact and inquiries |
+| `/login` | Member login |
+| `/register` | Member registration |
+| `/booking`, `/book-now` | Protected booking pages |
+| `/profile` | Protected member profile |
+| `/privacy`, `/terms` | Legal information |
 
-The home, Services, Contact, and About headers link to `/login`. The Home page also has a matching mobile menu.
+### API
 
-### Editable content
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/register` | Create an account |
+| `POST` | `/api/login` | Start a member session |
+| `GET` | `/api/session` | Get the current session |
+| `POST` | `/api/logout` | End the current session |
+| `GET` | `/api/auth/google` | Start optional Google sign-in |
+| `GET` | `/api/auth/google/callback` | Complete Google sign-in |
+| `POST` | `/api/contact` | Receive a contact or booking inquiry |
+| `GET` | `/api/message` | Basic health-check endpoint |
 
-- `frontend/barbars/src/data/hairstyles.js` contains the style names, categories, descriptions, image paths, NGN and USD prices, and session durations. The UI derives its category filters from this data.
-- `frontend/barbars/src/data/services.js` contains the service catalogue, studio/home-service availability, home-service steps, benefits, and configurable travel-fee fields. Home-service fees are currently unset and are not added to style prices.
-- `frontend/barbars/src/components/contact/contactConfig.js` contains the email and social/contact URLs. They are currently blank. Set these values to enable configured contact links and email copy.
+The booking inquiry endpoint currently receives submissions but does not create persistent appointments or process payments.
 
-The Contact form prepares an email using `mailto:` when an email address is configured. Until then, it displays a setup message. The login and Google buttons are visual UI only; there is no authentication provider or account system yet.
+## Local development
 
-### Run the frontend
+### 1. Configure the backend
 
-```bash
+```powershell
+Copy-Item backend/.env.example backend/.env
+```
+
+Set the PostgreSQL connection values in `backend/.env`. The backend accepts either the individual `DB_USER`, `DB_HOST`, `DB_NAME`, `DB_PASSWORD`, and `DB_PORT` settings or a `DATABASE_URL`. Create the database and run `backend/schema.sql` against it before using registration or login.
+
+Google sign-in is optional. To enable it locally, configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_CALLBACK_URL` in the backend environment and register the callback URL with Google.
+
+### 2. Start the frontend
+
+```powershell
 cd frontend/barbars
-npm install
+npm ci
 npm run dev
 ```
 
-Vite prints the local development URL, usually `http://localhost:5173`.
+Vite normally runs at `http://localhost:5173`; its `/api` requests are proxied to the backend on port `3000`.
 
-Available frontend commands:
+### 3. Start the backend in another terminal
 
-```bash
-npm run build    # Production build to frontend/barbars/dist
-npm run preview  # Preview the production build
-npm run lint     # Run ESLint
-```
-
-The convenience scripts in `frontend/package.json` delegate to the nested Vite app. Install frontend dependencies in `frontend/barbars` first.
-
-## Backend
-
-The backend uses Express 5 and CORS. `backend/server.js` serves the built frontend from `frontend/barbars/dist`, exposes JSON parsing and CORS middleware, mounts the API router at `/api`, and sends the frontend entry point for other routes so React Router pages can load directly.
-
-Current API endpoint:
-
-| Method | Path | Response |
-| --- | --- | --- |
-| `GET` | `/api/message` | `{ "message": "hello world" }` |
-
-There is no database, persistent storage, appointment service, or authentication API configured yet.
-
-### Run the backend
-
-```bash
+```powershell
 cd backend
-npm install
-node server.js
+npm ci
+npm start
 ```
 
-The server listens on port `3000`. Visit `http://localhost:3000/api/message` to check the sample API route. To serve the frontend through Express, build it first with `npm run build` from `frontend/barbars`; then start the backend.
+The backend listens on `http://localhost:3000`.
 
-For separate development servers, run Vite and Express in two terminals. The frontend currently does not configure a Vite API proxy, so call the backend at port `3000` directly when adding API integration.
+Frontend commands (run from `frontend/barbars`):
 
-## Loading and visual details
+```text
+npm run dev
+npm run lint
+npm run build
+npm run preview
+```
 
-The home page uses skeleton loading states for its initial layout, photo/video loading, and 3D scenes. Hairstyle images and deferred 3D scenes also use skeleton placeholders. A slim dark scrollbar with a muted gold hover state is styled globally. Home-page photography and the main site fonts load from external services; hairstyle preview artwork is stored locally as SVG files.
+## Deploy with GitHub and Render
+
+The repository includes a Render Blueprint (`render.yaml`) and GitHub Actions checks. Render builds the Vite frontend, installs the backend, and starts Express to serve both the API and built site. Pushing to the connected GitHub branch triggers a deployment.
+
+1. Review and commit the deployment changes, then push the connected branch to GitHub:
+
+   ```powershell
+   git add -A
+   git commit -m "Prepare project for deployment"
+   git push origin main
+   ```
+
+   The local `backend/.env` and installed `backend/node_modules` remain on your computer but are no longer tracked. Do not commit `.env` files, passwords, OAuth secrets, or database credentials; the example files contain placeholders only. If real credentials were ever pushed, rotate them because untracking a file does not remove it from earlier Git history.
+2. Provision a PostgreSQL database with Render or another provider. Apply `backend/schema.sql` to that database before relying on registration and login.
+3. In Render, choose **New > Blueprint**, connect the GitHub repository, and apply the `render.yaml` configuration.
+4. Set the service's `DATABASE_URL` to the database connection string. The Blueprint generates `SESSION_SECRET`; set `FRONTEND_ORIGIN` to the deployed service URL, such as `https://your-service.onrender.com`.
+5. If enabling Google sign-in, add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_CALLBACK_URL` in the Render service environment. Set the callback to `https://your-service.onrender.com/api/auth/google/callback` and register that exact URL with Google.
+6. Deploy. The service health check uses `/api/message`; after it passes, open the Render service URL to verify the site.
+
+The Blueprint uses Render's free web-service plan. The database is intentionally configured separately so you can select a database provider and plan that suits your needs. Set `DATABASE_SSL=true` when the database provider requires TLS; the Render Blueprint enables it by default.
+
+GitHub Actions runs frontend lint/build checks and backend syntax checks for pushes and pull requests. Render deployment is configured separately by connecting the repository through Render's Blueprint flow.
+
+## Content configuration
+
+- `frontend/barbars/src/data/hairstyles.js` and `services.js` hold the service and style catalogues.
+- `frontend/barbars/src/components/contact/contactConfig.js` holds contact links and email settings.
+- `backend/schema.sql` defines the account and session tables.
