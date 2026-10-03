@@ -47,6 +47,11 @@ app.use("/api", apiRouter)
 // In production, serve the built React app from this same server.
 app.use(express.static(frontend))
 
+app.post("/api/paystack/webhook", async (req, res) => {
+  const paystackSecret = process.env.PAYSTACK_SECRET
+  // Handle Paystack callback logic here
+})
+
 // Return React's entry page for browser routes such as /register after a refresh.
 app.get("/{*splat}", (req, res) => {
   res.sendFile(path.join(frontend, "index.html"))

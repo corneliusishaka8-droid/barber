@@ -20,6 +20,7 @@ export default function BookingPage() {
   const [search, setSearch] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [feedback, setFeedback] = useState('')
+  const [paymentNotice, setPaymentNotice] = useState('')
   const selectedHaircut = bookingHaircuts.find(({ id }) => id === selectedHaircutId)
   const selectedBarber = availableBarbers.find(({ id }) => id === selectedBarberId)
   const homeServiceFee = homeService && selectedHaircut ? selectedHaircut.priceNGN / 2 : 0
@@ -154,6 +155,12 @@ export default function BookingPage() {
             <div className="booking-receipt-total"><span>TOTAL</span><strong>{formatNaira(total)}</strong></div>
             <p className="booking-payment-summary">Payment preference: <strong>{paymentMethod === 'online' ? 'Pay online' : 'Pay after service'}</strong></p>
             {paymentMethod === 'online' && <p className="booking-payment-disclaimer">No payment is taken here. The studio will contact you with secure payment instructions.</p>}
+            {paymentMethod === 'online' && <>
+              <button className="booking-online-pay" type="button" disabled={!selectedHaircut || !selectedBarber} onClick={() => setPaymentNotice('Paystack checkout is coming soon. No payment has been taken.')}>
+                <span>PAY {formatNaira(total)} ONLINE</span><b aria-hidden="true">↗</b>
+              </button>
+              <p className="booking-online-note" aria-live="polite">{paymentNotice || 'PAYSTACK CHECKOUT COMING SOON'}</p>
+            </>}
             <button className="booking-submit" type="submit" disabled={submitting || !selectedHaircut || !selectedBarber}><span>{submitting ? 'SENDING REQUEST…' : 'SEND BOOKING REQUEST'}</span><b aria-hidden="true">↗</b></button>
             <p className="booking-feedback" aria-live="polite" role="status">{feedback}</p>
           </aside>

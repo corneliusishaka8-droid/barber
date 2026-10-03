@@ -21,11 +21,11 @@ function AccountRow({ icon, title, description, to }) {
 }
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState('account')
   const [logoutMessage, setLogoutMessage] = useState('')
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const displayName = user?.fullName || user?.username || 'Member'
+  const activeTab = 'account'
 
   const handleLogout = async () => {
     try {
@@ -51,25 +51,37 @@ export default function ProfilePage() {
         </div>
 
         <div className="account-tabs" role="tablist" aria-label="Account sections">
-          <button type="button" role="tab" id="account-tab" aria-selected={activeTab === 'account'} aria-controls="account-panel" onClick={() => setActiveTab('account')}>MY ACCOUNT</button>
-          <button type="button" role="tab" id="lists-tab" aria-selected={activeTab === 'lists'} aria-controls="account-panel" onClick={() => setActiveTab('lists')}>MY LISTS</button>
+          <button type="button" role="tab" id="account-tab" aria-selected={activeTab === 'account'} aria-controls="account-panel">MY ACCOUNT</button>
         </div>
 
-        <div className="account-panel" id="account-panel" role="tabpanel" aria-labelledby={activeTab === 'account' ? 'account-tab' : 'lists-tab'}>
-          {activeTab === 'account' ? <div className="account-options">
+        <div className="account-panel" id="account-panel" role="tabpanel" aria-labelledby="account-tab">
+          <div className="account-options">
             <AccountRow icon="profile" title="My Profile" description="Edit your profile and account details" to="/profile" />
-            <button className="account-option account-list-option" type="button" onClick={() => setActiveTab('lists')}>
-              <span className="account-option-symbol"><AccountIcon name="lists" /></span>
-              <span className="account-option-copy"><strong>My Lists</strong><span>See the styles and services you have saved</span></span>
-              <span className="account-option-arrow" aria-hidden="true">↗</span>
-            </button>
             <AccountRow icon="booking" title="Book Now" description="Book a service or schedule an appointment" to="/book-now" />
-          </div> : <div className="account-empty-state">
-            <span className="account-empty-icon"><AccountIcon name="lists" /></span>
-            <h2>Your list starts here.</h2>
-            <p>Styles and services you save will appear here.</p>
-            <Link to="/services" className="account-explore-link">EXPLORE SERVICES <span aria-hidden="true">↗</span></Link>
-          </div>}
+          </div>
+
+          <div className="account-profile-story">
+            <div className="account-story-panel">
+              <p className="account-story-kicker">YOUR STYLE PROFILE</p>
+              <h2>Tailored for the way you like to show up.</h2>
+              <p>Every visit is built around your routine, your comfort, and the details that make you feel your best. We keep your preferences close so each appointment feels personal, polished, and easy.</p>
+            </div>
+
+            <div className="account-mini-grid">
+              <div className="account-mini-item">
+                <span className="account-mini-label">Preferred cut</span>
+                <strong>Skin fade with a clean finish</strong>
+              </div>
+              <div className="account-mini-item">
+                <span className="account-mini-label">Routine</span>
+                <strong>Every 2–3 weeks</strong>
+              </div>
+              <div className="account-mini-item">
+                <span className="account-mini-label">Barber notes</span>
+                <strong>Keep it close around the edges and trim the beard neatly.</strong>
+              </div>
+            </div>
+          </div>
         </div>
         <p className="account-footnote"><span>LAGOS / NIGERIA</span><span>PERSONAL SERVICE, ALWAYS</span></p>
       </section>
