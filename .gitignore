@@ -7,12 +7,12 @@ dist-ssr/
 coverage/
 
 # Environment files and local secrets
-.env
-.env.*
-!.env.example
-!**/.env.example
-!.envexample
-!**/.envexample
+backend/.env
+backend/.env.*
+!backend/.env.example
+!**/backend/.env.example
+!backend/.envexample
+!**/backend/.envexample
 
 # Logs
 logs/
