@@ -7,12 +7,23 @@ dist-ssr/
 coverage/
 
 # Environment files and local secrets
-backend/.env
-backend/.env.*
+.env
+.env.*
+**/.env
+**/.env.*
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.local
+
+# Keep safe template/example files tracked
+!.env.example
+!**/.env.example
+!**/.envexample
 !backend/.env.example
-!**/backend/.env.example
 !backend/.envexample
-!**/backend/.envexample
 
 # Logs
 logs/

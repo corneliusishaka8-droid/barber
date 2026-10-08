@@ -1,139 +1,259 @@
-# Sarum Cut Barber Studio
+﻿# Sarum Cut Barber Studio
 
-A full-stack barber studio website and member portal built with React, Vite, Express, Passport, and PostgreSQL. The frontend is built and served by the Express server in production, so the application can be deployed as a single web service.
+Sarum Cut Barber Studio is a full-stack barber booking and membership platform built with React, Vite, Express, PostgreSQL, and Passport. The project combines a premium salon landing page with authenticated member flows for login, registration, profile access, and contact or booking inquiries.
+
+## Overview
+
+This project is designed to showcase a modern barber brand while also giving the studio a working member portal. It includes:
+
+- A polished storefront and service catalogue
+- Booking and contact inquiry forms
+- Local username/password authentication with bcrypt hashing
+- Optional Google OAuth sign-in
+- PostgreSQL-backed user records and session storage
+- A production-ready Express server that serves the built frontend
+
+## Tech stack
+
+- Frontend: React + Vite
+- Backend: Node.js + Express
+- Authentication: Passport.js with local strategy and Google OAuth 2.0
+- Database: PostgreSQL
+- Session storage: PostgreSQL-backed sessions via `connect-pg-simple`
+- Environment management: dotenv
+- Deployment target: Render or any Node host that can serve static files and run Express
 
 ## Project structure
 
 ```text
 barbers/
 ├── backend/
-│   ├── routes/api.js             # Authentication, contact and session API
-│   ├── schema.sql                # PostgreSQL user and session tables
-│   ├── server.js                 # Express API and production static hosting
-│   ├── db.js                     # PostgreSQL connection pool
-│   ├── passport.js               # Local and optional Google OAuth strategies
+│   ├── db.js
+│   ├── passport.js
+│   ├── schema.sql
+│   ├── server.js
+│   ├── routes/
+│   │   └── api.js
+│   ├── .env.example
 │   └── package.json
 ├── frontend/
-│   ├── package.json              # Convenience scripts
-│   └── barbars/
+│   ├── package.json
+│   └── barbers/
 │       ├── src/
-│       │   ├── auth/
-│       │   ├── components/
-│       │   ├── data/
-│       │   └── pages/
-│       ├── package.json
-│       └── vite.config.js
-├── .github/workflows/ci.yml      # GitHub lint, build and syntax checks
-├── render.yaml                  # Render Blueprint web service
-└── .node-version                # Node.js version used for deployment
+│       ├── public/
+│       ├── index.html
+│       ├── vite.config.js
+│       ├── eslint.config.js
+│       └── package.json
+├── .gitignore
+├── README.md
+├── .env.example (if present in repo root)
+└── package-lock.json (root if installed)
 ```
 
 ## Features
 
-- Responsive dark-and-gold barber studio site with interactive 3D scenes.
-- Service and hairstyle catalogues with local artwork and pricing.
-- Contact and booking inquiry forms.
-- Username/password registration and login, with optional Google OAuth.
-- Protected member profile and booking pages.
-- PostgreSQL-backed user records and persistent login sessions.
+- Responsive dark-and-gold visual design for a barber studio brand
+- Service and hairstyle catalogues with styled content blocks
+- Contact form and booking inquiry support
+- Secure local sign-up and sign-in flow
+- Optional Google account linking for user sign-in
+- Protected routes for profile and booking experiences
+- Session-aware API that returns the current authenticated user
+- Production static serving for the built frontend from the backend server
 
-## Routes
+## Authentication and user flow
 
-### Frontend
+The backend exposes a session-based authentication system built with Passport.
 
-| Path | Page |
-| --- | --- |
-| `/` | Home |
-| `/services` | Services and style catalogue |
-| `/about` | Studio story |
-| `/contact` | Contact and inquiries |
-| `/login` | Member login |
-| `/register` | Member registration |
-| `/booking`, `/book-now` | Protected booking pages |
-| `/profile` | Protected member profile |
-| `/privacy`, `/terms` | Legal information |
+### Local auth
 
-### API
+- `POST /api/register` creates a user account
+- `POST /api/login` authenticates and creates a session
+- `GET /api/session` returns the logged-in user if authenticated
+- `POST /api/logout` ends the current session
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `POST` | `/api/register` | Create an account |
-| `POST` | `/api/login` | Start a member session |
-| `GET` | `/api/session` | Get the current session |
-| `POST` | `/api/logout` | End the current session |
-| `GET` | `/api/auth/google` | Start optional Google sign-in |
-| `GET` | `/api/auth/google/callback` | Complete Google sign-in |
-| `POST` | `/api/contact` | Receive a contact or booking inquiry |
-| `GET` | `/api/message` | Basic health-check endpoint |
+### Google OAuth
 
-The booking inquiry endpoint currently receives submissions but does not create persistent appointments or process payments.
+When configured, the app supports Google sign-in through:
+
+- `GET /api/auth/google`
+- `GET /api/auth/google/callback`
+
+Google OAuth is enabled only when the required environment variables are present.
+
+## Environment variables
+
+Create a local environment file in `backend/.env` by copying the example template if one exists.
+
+### Required for the app to run
+
+```env
+PORT=3000
+SESSION_SECRET=your_session_secret_here
+```
+
+### Database configuration
+
+Use either a connection string or individual values:
+
+```env
+DATABASE_URL=postgres://user:password@host:5432/dbname
+# or
+DB_USER=postgres
+DB_HOST=localhost
+DB_NAME=barber_db
+DB_PASSWORD=your_password
+DB_PORT=5432
+DATABASE_SSL=false
+```
+
+### Optional Google OAuth
+
+```env
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
+FRONTEND_ORIGIN=http://localhost:5173
+```
+
+### Production note
+
+Keep `.env` files out of Git. The repository is configured to ignore them in `.gitignore`, and only example templates should be tracked.
 
 ## Local development
 
-### 1. Configure the backend
+### 1. Install dependencies
 
-```powershell
-Copy-Item backend/.env.example backend/.env
+Open two terminals.
+
+#### Backend
+
+```bash
+cd backend
+npm install
 ```
 
-Set the PostgreSQL connection values in `backend/.env`. The backend accepts either the individual `DB_USER`, `DB_HOST`, `DB_NAME`, `DB_PASSWORD`, and `DB_PORT` settings or a `DATABASE_URL`. Create the database and run `backend/schema.sql` against it before using registration or login.
+#### Frontend
 
-Google sign-in is optional. To enable it locally, configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_CALLBACK_URL` in the backend environment and register the callback URL with Google.
+```bash
+cd frontend/barbers
+npm install
+```
 
-### 2. Start the frontend
+### 2. Set up PostgreSQL
 
-```powershell
-cd frontend/barbars
-npm ci
+Create a PostgreSQL database and run the schema file:
+
+```bash
+psql -U postgres -d barber_db -f backend/schema.sql
+```
+
+If you are using a local database, make sure the connection details in `backend/.env` match your PostgreSQL configuration.
+
+### 3. Start the frontend
+
+```bash
+cd frontend/barbers
 npm run dev
 ```
 
-Vite normally runs at `http://localhost:5173`; its `/api` requests are proxied to the backend on port `3000`.
+The Vite app usually runs on:
 
-### 3. Start the backend in another terminal
+```text
+http://localhost:5173
+```
 
-```powershell
+### 4. Start the backend
+
+```bash
 cd backend
-npm ci
 npm start
 ```
 
-The backend listens on `http://localhost:3000`.
-
-Frontend commands (run from `frontend/barbars`):
+The backend usually runs on:
 
 ```text
+http://localhost:3000
+```
+
+## Common project scripts
+
+### Backend
+
+```bash
+cd backend
+npm start
+```
+
+### Frontend
+
+
+Run from `frontend/barbers`:
+
+```bash
 npm run dev
-npm run lint
 npm run build
+npm run lint
 npm run preview
 ```
 
-## Deploy with GitHub and Render
+## API endpoints
 
-The repository includes a Render Blueprint (`render.yaml`) and GitHub Actions checks. Render builds the Vite frontend, installs the backend, and starts Express to serve both the API and built site. Pushing to the connected GitHub branch triggers a deployment.
+### Public routes
 
-1. Review and commit the deployment changes, then push the connected branch to GitHub:
+```text
+GET  /api/message
+POST /api/contact
+POST /api/register
+POST /api/login
+POST /api/logout
+GET  /api/session
+```
 
-   ```powershell
-   git add -A
-   git commit -m "Prepare project for deployment"
-   git push origin main
-   ```
+### Google auth routes
 
-   The local `backend/.env` and installed `backend/node_modules` remain on your computer but are no longer tracked. Do not commit `.env` files, passwords, OAuth secrets, or database credentials; the example files contain placeholders only. If real credentials were ever pushed, rotate them because untracking a file does not remove it from earlier Git history.
-2. Provision a PostgreSQL database with Render or another provider. Apply `backend/schema.sql` to that database before relying on registration and login.
-3. In Render, choose **New > Blueprint**, connect the GitHub repository, and apply the `render.yaml` configuration.
-4. Set the service's `DATABASE_URL` to the database connection string. The Blueprint generates `SESSION_SECRET`; set `FRONTEND_ORIGIN` to the deployed service URL, such as `https://your-service.onrender.com`.
-5. If enabling Google sign-in, add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_CALLBACK_URL` in the Render service environment. Set the callback to `https://your-service.onrender.com/api/auth/google/callback` and register that exact URL with Google.
-6. Deploy. The service health check uses `/api/message`; after it passes, open the Render service URL to verify the site.
+```text
+GET /api/auth/google
+GET /api/auth/google/callback
+```
 
-The Blueprint uses Render's free web-service plan. The database is intentionally configured separately so you can select a database provider and plan that suits your needs. Set `DATABASE_SSL=true` when the database provider requires TLS; the Render Blueprint enables it by default.
+### Notes
 
-GitHub Actions runs frontend lint/build checks and backend syntax checks for pushes and pull requests. Render deployment is configured separately by connecting the repository through Render's Blueprint flow.
+- Contact submissions are logged in the backend and return a success response.
+- Booking requests are protected when the user is authenticated.
+- The current implementation focuses on booking/contact inquiry handling rather than payment processing.
 
-## Content configuration
+## Deployment
 
-- `frontend/barbars/src/data/hairstyles.js` and `services.js` hold the service and style catalogues.
-- `frontend/barbars/src/components/contact/contactConfig.js` holds contact links and email settings.
-- `backend/schema.sql` defines the account and session tables.
+This project is designed to deploy as a single web service with the backend serving the built React app in production.
+
+### Render example
+
+Use a Node server runtime with:
+
+- `DATABASE_URL` or equivalent DB env variables
+- `SESSION_SECRET`
+- `FRONTEND_ORIGIN`
+- Optional Google OAuth variables
+
+The backend serves the frontend from `frontend/barbers/dist` in production mode, so the app can run from one host instead of requiring a separate frontend server.
+
+## Security notes
+
+- Never commit `.env` files or any real secrets
+- Keep OAuth client IDs and secrets in environment variables only
+- Rotate credentials immediately if a secret was ever exposed in Git history
+- Use example files such as `.env.example` for safe placeholders
+
+## License
+
+This project is currently structured for local development and deployment without a formal public license file in the repo. If you plan to distribute it publicly, add an appropriate license before publishing.
+
+## Contributing
+
+1. Fork or clone the project
+2. Create a feature branch
+3. Make changes with tests or validation when available
+4. Keep environment files local and untracked
+5. Submit a pull request with a clear summary of the change
