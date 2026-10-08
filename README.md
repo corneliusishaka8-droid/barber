@@ -226,18 +226,20 @@ GET /api/auth/google/callback
 
 ## Deployment
 
-This project is designed to deploy as a single web service with the backend serving the built React app in production.
+The frontend can be deployed separately from the Express API. Production frontend builds use
+`https://backend-eight-orcin-13.vercel.app/api` by default; set `VITE_API_BASE_URL` if the API
+is hosted elsewhere. Local frontend development continues to use Vite's `/api` proxy.
 
-### Render example
+Configure these backend environment variables in the hosting provider:
 
-Use a Node server runtime with:
+- `DATABASE_URL` or the `DB_*` database settings
+- `SESSION_SECRET` with a long, randomly generated value
+- `FRONTEND_ORIGIN` set to the deployed frontend's exact origin (scheme and host, no path)
+- `SESSION_COOKIE_SAME_SITE=none` when frontend and API use different sites
+- Optional Google OAuth variables, with the deployed callback URL
 
-- `DATABASE_URL` or equivalent DB env variables
-- `SESSION_SECRET`
-- `FRONTEND_ORIGIN`
-- Optional Google OAuth variables
-
-The backend serves the frontend from `frontend/barbers/dist` in production mode, so the app can run from one host instead of requiring a separate frontend server.
+Keep `.env` files and all real credentials out of Git. Set production values in the hosting
+provider's environment-variable settings, not in the frontend bundle.
 
 ## Security notes
 

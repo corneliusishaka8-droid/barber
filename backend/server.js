@@ -62,4 +62,8 @@ app.get("/{*splat}", (req, res) => {
   res.sendFile(path.join(frontend, "index.html"))
 })
 
-app.listen(port, () => console.log(`Sarum Cut backend listening at http://localhost:${port}`))
+if (process.env.VERCEL !== "1") {
+  app.listen(port, () => console.log(`Sarum Cut backend listening at http://localhost:${port}`))
+}
+
+export default app
